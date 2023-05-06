@@ -1,79 +1,99 @@
-/*
- * Tema 2 ASC
- * 2023 Spring
- */
 #include "utils.h"
+#include <string.h>
 
-/*
- * Add your unoptimized implementation here
- */
-double* my_solver(int N, double *A, double* B) {
+#define ERROR(message) { \
+        fprintf(stderr, "An Error has occured with message: %s\n", message); \
+        exit(EXIT_FAILURE); \
+}
+
+#define ZERO 0
+#define double_sz sizeof(double)
+
+
+double* my_solver(int sz, double *a, double* b) {
     printf("NEOPT SOLVER\n");
-    double *C = (double*)malloc(N * N * sizeof(double));
-    memset(C, 0, N * N * sizeof(double));
-    double sum;
-    int i, j, k;
+    double *c = (double*)calloc(sz * sz, sizeof(double));
 
-    // Perform matrix multiplication of A and B
-    for (i = 0; i < N; i++) {
-        // Loop over columns of B
-        for (j = 0; j < N; j++) {
-            sum = 0.0;
-            // Only multiply elements above or on the diagonal of A
-            for (k = i; k < N; k++) {
-                sum += A[i * N + k] * B[k * N + j];
-            }
-            // Store result in C
-            C[i * N + j] = sum;
+    if (c == NULL) {
+        ERROR("Calloc failed");
+    }
+    
+    for (int i = 0; i < sz; ++i) {
+        for (int j = 0; j < sz; ++j) {
+            c[j + i * sz] = ZERO;
         }
     }
 
-    // Multiply C with transpose of A
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++) {
-            sum = 0.0;
-            // Multiply corresponding elements of C and A transpose
-            for (k = 0; k < N; k++) {
-                sum += C[i * N + k] * A[j * N + k];
-            }
-            // Store result in C
-            C[i * N + j] = sum;
+    int i = ZERO, j = ZERO, k = ZERO;
+    do {
+        j = ZERO;
+        do {
+            c[j + i * sz] = ZERO;
+            k = i;
+            do {
+                c[j + i * sz] += a[k + i * sz] * b[j + k * sz];
+                ++k;
+            } while (k < sz);
+            ++j;
+        } while (j < sz);
+        ++i;
+    } while (i < sz);
+
+    double result = ZERO;
+    i = ZERO;
+    do {
+        j = ZERO;
+        do {
+            result = 0;
+            k = ZERO;
+            do {
+                result += c[k + i * sz] * a[k + j * sz];
+                ++k;
+            } while (k < sz);
+            c[j + i * sz] = result;
+            ++j;
+        } while (j < sz);
+        ++i;
+    } while (i < sz);
+
+    double *b_transpose = (double *) calloc(sz * sz, double_sz);
+    for (int i = 0; i < sz; ++i) {
+        for (int j = 0; j < sz; ++j) {
+            b_transpose[j + i * sz] = ZERO;
         }
     }
 
-    // Compute transpose of B
-    double *Bt = (double*)malloc(N * N * sizeof(double));
-    memset(Bt, 0, N * N * sizeof(double));
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++) {
-            Bt[j * N + i] = B[i * N + j];
-        }
+    i = ZERO;
+    do {
+        j = ZERO;
+        do {
+            b_transpose[j * sz + i] = b[i * sz + j];
+            ++j;
+        } while (j < sz);
+        ++i;
+    } while (i < sz);
+
+    double *second = calloc(sz * sz, double_sz);
+    if (second == NULL) {
+        ERROR("Calloc failed");
     }
+    i = ZERO;
+    do {
+        j = ZERO;
+        second[j + i * sz] = ZERO;
+        do {
+            k = ZERO;
+            do {
+                second[j + i * sz] += b_transpose[k + i * sz] * b_transpose[j + k * sz];
+                ++k;
+            } while (k < sz);
+            c[j + i * sz] += second[j + i * sz];
+            ++j;
+        } while (j < sz);
+        ++i;
+    } while (i < sz);
 
-
-    // Multiply transpose of B with itself
-        double *D = (double*)malloc(N * N * sizeof(double));
-  //  memset(D, 0, N * N * sizeof(double));
-    for (i = 0; i < N; i++) {
-            for (j = 0; j < N; j++) {
-                sum = 0.0;
-                // Multiply corresponding elements of transpose of B and B
-                for (k = 0; k < N; k++) {
-                    sum += Bt[i * N + k] * Bt[k * N + j];
-                }
-                // Store result in D
-                D[i * N + j] = sum;
-            }
-        }
-
-    // Add D to C and return the result
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++) {
-            C[i * N + j] += D[i * N + j];
-        }
-    }
-
-    free(Bt); // free memory allocated for Bt
-    free(D); // free memory allocated for D
-    return C;
+    free(b_transpose);
+    free(second);
+    return c;
 }
