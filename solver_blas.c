@@ -13,7 +13,7 @@
 double* my_solver(int sz, double *a, double *b) {
     printf("BLAS SOLVER\n");
 
-    long double *result = (long double *) malloc(sz * sz * double_sz);
+    double *result = (double *) malloc(sz * sz * double_sz);
     if (result == NULL) {
         ERROR("Malloc failed");
     }
@@ -24,14 +24,14 @@ double* my_solver(int sz, double *a, double *b) {
         }
     }
 
-    cblas_dtrmm(CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit, sz, sz, 1, a, sz, (double *) result, sz);
+    cblas_dtrmm(CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit, sz, sz, 1, a, sz, result, sz);
 
     long double *second_result = (long double *) malloc(sz * sz * double_sz);
     if (second_result == NULL) {
         ERROR("Malloc failed");
     }
 
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, sz, sz, sz, 1, (double *) result, sz, a, sz, 0, (double *) second_result, sz);
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, sz, sz, sz, 1, result, sz, a, sz, 0, (double *) second_result, sz);
 
     long double *b_transpose_b = (long double *) malloc(sz * sz * double_sz);
     if (b_transpose_b == NULL) {
