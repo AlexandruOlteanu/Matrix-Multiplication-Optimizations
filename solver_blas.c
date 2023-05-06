@@ -12,36 +12,48 @@
         exit(EXIT_FAILURE); \
 }
 
-double* my_solver(int N, double *A, double *B) {
+#define sizeof(double) double_sz
+
+double* my_solver(int sz, double *a, double *b) {
     printf("BLAS SOLVER\n");
 
     // Calculate B x A
-    double *BxA = calloc(N * N, sizeof(double));
-    DIE(BxA == NULL, "BxA calloc error");
+    long double *result = (double *) malloc(sz * sz * double_sz);
+    if (result == NULL) {
+        ERROR("Malloc failed");
+    }
 
     // Initialize BxA = B, after multiplication, BxA = B x A
-    memcpy(BxA, B, N * N * sizeof(double));
+    for (int i = 0; i < sz; ++i) {
+        for (int j = 0; j < sz; ++j) {
+            result[i][j] = b[i][j];
+        }
+    }
 
-    cblas_dtrmm(CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit, N, N, 1, A, N, BxA, N);
+    cblas_dtrmm(CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit, sz, sz, 1, a, sz, result, sz);
 
     // Calculate BxA x A^T
-    double *result = calloc(N * N, sizeof(double));
-    DIE(result == NULL, "Result calloc error");
+    double *second_result = (double *) malloc(sz * sz * double_sz);
+    if (second_result == NULL) {
+        ERROR("Malloc failed");
+    }
 
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, N, N, N, 1, BxA, N, A, N, 0, result, N);
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans, sz, sz, sz, 1, result, sz, a, sz, 0, second_result, sz);
 
     // Calculate B transpose x B
-    double *BtB = calloc(N * N, sizeof(double));
-    DIE(BtB == NULL, "BtB calloc error");
+    double *b_transpose_b = (double *) malloc(sz * sz * double_sz);
+    if (b_transpose_b == NULL) {
+        ERROR("Malloc failed");
+    }
 
-    cblas_dgemm(CblasRowMajor, CblasTrans, CblasTrans, N, N, N, 1, B, N, B, N, 0, BtB, N);
+    cblas_dgemm(CblasRowMajor, CblasTrans, CblasTrans, sz, sz, sz, 1, b, sz, b, sz, 0, b_transpose_b, sz);
 
     // Add BtB to the result
-    cblas_daxpy(N * N, 1, BtB, 1, result, 1);
+    cblas_daxpy(sz * sz, 1, b_transpose_b, 1, second_result, 1);
 
     // Free memory allocated for BxA and BtB
-    free(BxA);
-    free(BtB);
+    free(result);
+    free(b_transpose_b);
 
     return result;
 }
