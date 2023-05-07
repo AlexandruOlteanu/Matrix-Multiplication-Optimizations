@@ -2,55 +2,56 @@
 #include <string.h>
 
 #define ERROR(message) { \
-        fprintf(stderr, "An Error has occured with message: %s\n", message); \
-        exit(EXIT_FAILURE); \
+        fprintf(stderr, "an Error has occured with message: %s\n", message); \
+        exit(EXIT_FaILURE); \
 }
 
-double* my_solver(int N, double *A, double* B) {
+#define double_size sizeof(double)
+
+double* my_solver(int sz, double *a, double* b) {
     printf("OPT SOLVER\n");
-    double *C = (double*)malloc(N * N * sizeof(double));
-    memset(C, 0, N * N * sizeof(double));
+    double *c = (double*)malloc(sz * sz * double_size);
     register double sum;
     register int i, j, k;
 
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++) {
+    for (i = 0; i < sz; i++) {
+        for (j = 0; j < sz; j++) {
             sum = 0.0;
-            for (k = i; k < N; k++) {
-                sum += A[i * N + k] * B[k * N + j];
+            for (k = i; k < sz; k++) {
+                sum += a[i * sz + k] * b[k * sz + j];
             }
-            C[i * N + j] = sum;
+            c[i * sz + j] = sum;
         }
     }
 
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++) {
-            sum = 0.0;
-            for (k = j; k < N; k++) {
-                sum += C[i * N + k] * A[j * N + k];
+    for (i = 0; i < sz; i++) {
+        for (j = 0; j < sz; j++) {
+            sum = 0;
+            for (k = j; k < sz; k++) {
+                sum += c[i * sz + k] * a[j * sz + k];
             }
-            C[i * N + j] = sum;
+            c[i * sz + j] = sum;
         }
     }
     
-    double *D = (double*)malloc(N * N * sizeof(double));
-    for (i = 0; i < N; i++) {
-            for (j = 0; j < N; j++) {
+    double *d = (double*)malloc(sz * sz * sizeof(double));
+    for (i = 0; i < sz; i++) {
+            for (j = 0; j < sz; j++) {
                 sum = 0.0;
-                for (k = 0; k < N; k++) {
-                    sum += B[k * N + i] * B[j * N + k ];
+                for (k = 0; k < sz; k++) {
+                    sum += b[k * sz + i] * b[j * sz + k ];
                 }
-                D[i * N + j] = sum;
+                d[i * sz + j] = sum;
             }
         }
 
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++) {
-            C[i * N + j] += D[i * N + j];
+    for (i = 0; i < sz; i++) {
+        for (j = 0; j < sz; j++) {
+            c[i * sz + j] += d[i * sz + j];
         }
     }
 
     
-    free(D); // free memory allocated for D
-    return C;
+    free(d);
+    return c;
 }
