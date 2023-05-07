@@ -3,55 +3,45 @@
 
 #define ERROR(message) { \
         fprintf(stderr, "an Error has occured with message: %s\n", message); \
-        exit(EXIT_FaILURE); \
+        exit(EXIT_FAILURE); \
 }
 
 #define double_size sizeof(double)
 
 double* my_solver(int sz, double *a, double* b) {
     printf("OPT SOLVER\n");
-    double *c = (double*)malloc(sz * sz * double_size);
-    register double sum;
+    double *c = (double *) calloc(sz * sz, double_size);
+    if (c == NULL) {
+        ERROR("Calloc failed");
+    }
     register int i, j, k;
+    register double res;
 
-    for (i = 0; i < sz; i++) {
-        for (j = 0; j < sz; j++) {
-            sum = 0.0;
-            for (k = i; k < sz; k++) {
-                sum += a[i * sz + k] * b[k * sz + j];
+    for (i = sz - 1; i >= 0; --i) {
+        for (j = sz - 1; j >= 0; --j) {
+            res = 0;
+            for (k = sz - 1; k >= i; --k) {
+                res +=  b[j + k * sz] * a[k + i * sz];
             }
-            c[i * sz + j] = sum;
+            c[j + i * sz] = res;
+        }
+
+        for (j = 0; j < sz; ++j) {
+            res = 0;
+            for (k = sz - 1; k >= j; --k) {
+                res += a[k + j * sz] * c[k + i * sz];
+            }
+            c[j + i * sz] = res;
+        }
+
+        for (j = sz - 1; j >= 0; --j) {
+            res = 0;
+            for (k = sz - 1; k >= 0; --k) {
+                res += b[k + j * sz] * b[i + k * sz];
+            }
+            c[j + i * sz] += res;
         }
     }
 
-    for (i = 0; i < sz; i++) {
-        for (j = 0; j < sz; j++) {
-            sum = 0;
-            for (k = j; k < sz; k++) {
-                sum += c[i * sz + k] * a[j * sz + k];
-            }
-            c[i * sz + j] = sum;
-        }
-    }
-    
-    double *d = (double*)malloc(sz * sz * sizeof(double));
-    for (i = 0; i < sz; i++) {
-            for (j = 0; j < sz; j++) {
-                sum = 0.0;
-                for (k = 0; k < sz; k++) {
-                    sum += b[k * sz + i] * b[j * sz + k ];
-                }
-                d[i * sz + j] = sum;
-            }
-        }
-
-    for (i = 0; i < sz; i++) {
-        for (j = 0; j < sz; j++) {
-            c[i * sz + j] += d[i * sz + j];
-        }
-    }
-
-    
-    free(d);
     return c;
 }
