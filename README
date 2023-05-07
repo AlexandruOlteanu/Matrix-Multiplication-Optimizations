@@ -1,0 +1,72 @@
+<Copyright Alexandru Olteanu, grupa 332CA, alexandruolteanu2001@gmail.com>
+
+Implementare blas:
+
+Această implementare folosește biblioteca Blas pentru a efectua înmulțiri și adunări de matrice. Mai întâi, 
+aloc memoria pentru matrice și apoi folosesc cblas_dtrmm pentru a face o înmulțire între matricele A și B, 
+stocând matricea finală în result. Apoi, folosesc cblas_dgemm pentru a efectua aceeași operație. În final, 
+adaug matricea b_transpose_b la rezultat folosind cblas_daxpy și eliberez memoria, returnând pointerul la 
+matricea rezultat.
+
+Implementarea neopt:
+
+Implementarea reprezintă o abordare simplă și directă a înmulțirii matricelor. În cadrul acesteia, am ales să 
+efectuez doar înmulțirea matricelor, stocând apoi rezultatul în matricea c. În plus, am ales să profit de informația 
+că matricea A este o matrice triunghiulară superioară. Această informație mi-a permis să optimizez procesul de înmulțire,
+reducând astfel timpul de execuție al algoritmului. În rest, buclele do while sunt similare cu cele descrise anterior, fără 
+a aduce modificări semnificative procesului de calcul. Deși această implementare poate fi considerată una simplă, aceasta 
+demonstrează cum utilizarea unor tehnici de optimizare pot reduce semnificativ timpul de execuție și pot crește eficiența 
+procesului de înmulțire a matricelor.
+
+Implementarea opt:
+
+Am optimizat implementarea prin definirea tuturor variabilelor ca fiind de tip registru, astfel încât compilatorul să poată 
+accesa variabilele mai rapid atunci când acestea sunt plasate în registrul. Apoi, am rezolvat înmulțirea matricilor a x b și 
+am stocat rezultatul în matricea C. Pentru a optimiza procesul de înmulțire, am folosit desfacerea buclelor și am înmulțit doar
+elementele de mai sus și diagonala matricei A, deoarece aceasta este o matrice triunghiulară superioară. Pentru matricea c cu
+transpusa lui a, am aplicat aceeași metodă. În continuare, am efectuat înmulțirea standard a matricii. Pe scurt, optimizarile 
+au constat in folosirea variabilelor de tip regsitru si minimizarea oricaror operatii inutile.
+
+
+Cachegrind:
+
+Comparând numărul de instrucțiuni ale celor trei implementări, putem observa că implementarea Blas face mai puține operații decât 
+celelalte două (297,397,394 vs. 6,250,849,230 vs. 2,977,236,225). De asemenea, prin optimizarea procesului de calcul, am reușit 
+să reduc numărul de instrucțiuni cu aproximativ 2 ori în comparație cu implementarea neoptimizată.
+
+În ceea ce privește branch-urile, implementarea Blas are în continuare cea mai bună performanță, cu 4,655,855 de branch-uri, 
+comparativ cu celelalte două implementări, cu 163,975,536 și, respectiv, 132,053,909 de branch-uri. Cu toate acestea, rata de 
+predicție greșită este mai mare în cazul implementării Blas, cu o rată de 1,5%, în timp ce implementările neoptimizată și optimizată
+ au rate de predicție greșită de 0,3%, respectiv 0,4%.
+
+La nivelul cache-ului primar, putem observa rata de pierdere. Implementarea Blas se comportă mai bine în această privință, având o
+rată de pierdere de aproximativ 1,7%, ceea ce este mult mai mic decât celelalte două implementări, cu rate de pierdere de 3,1% și,
+respectiv, 12,6%.
+
+Pentru optimizarea implementării opt_m, am folosit variabile de tip registrul oriunde a fost posibil, astfel încât compilatorul 
+să poată stoca variabilele în registrul CPU-ului, ceea ce face accesul la acestea mai rapid. Am ales, de asemenea, să folosesc 
+calloc în loc de malloc pentru a evita necesitatea unei instrucțiuni suplimentare de memset. Pentru a îmbunătăți localitatea 
+cache-ului, am folosit reordonarea buclelor. Aceste optimizări au contribuit la o performanță mai bună a implementării opt_m.
+
+Generare grafice:
+
+Pentru generarea graficului de performanță am folosit un simplu script in Python in care am pus valorile pentru N si timpii optinuti.
+
+Blas: [0.043340, 0.461364, 0.954945, 1.045117, 1.537054, 3.217624]
+Neopt: [0.877917, 8.929580, 18.555080, 33.971359, 55.223946, 171.661819]
+Opt: [0.795388, 5.468883, 7.447092, 12.880463, 20.142532, 42.147861]
+
+Pe grafic putem observa diferenta majora intre ele pe masura ce N creste
+
+
+
+
+
+
+
+
+
+
+
+
+
