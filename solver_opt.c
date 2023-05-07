@@ -2,7 +2,7 @@
 #include <string.h>
 
 #define ERROR(message) { \
-        fprintf(stderr, "an Error has occured with message: %s\n", message); \
+        fprintf(stderr, "An Error has occured with message: %s\n", message); \
         exit(EXIT_FAILURE); \
 }
 
